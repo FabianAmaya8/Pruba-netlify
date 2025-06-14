@@ -4,7 +4,7 @@ catalogo_bp = Blueprint('catalogo_bp', __name__)
 
 @catalogo_bp.route('/api/catalogo', methods=['GET'])
 def api_catalogo():
-    connection = current_app.config['MYSQL_CONNECTION']
+    connection = current_app.config['PG_CONNECTION']
     try:
         with connection.cursor() as cursor:
             cursor.execute("""

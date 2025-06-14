@@ -13,7 +13,7 @@ def status():
 
 @register_bp.route('/api/ubicacion/paises', methods=['GET', 'POST'])
 def api_ubicacion_paises():
-    connection = current_app.config['MYSQL_CONNECTION']
+    connection = current_app.config['PG_CONNECTION']
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT id_ubicacion, nombre FROM ubicaciones WHERE tipo = 'pais'")
@@ -24,7 +24,7 @@ def api_ubicacion_paises():
 
 @register_bp.route('/api/ubicacion/ciudades', methods=['GET'])
 def api_ubicacion_ciudades():
-    connection = current_app.config['MYSQL_CONNECTION']
+    connection = current_app.config['PG_CONNECTION']
     pais_id = request.args.get('paisId')
 
     try:
@@ -51,7 +51,7 @@ def api_ubicacion_ciudades():
 
 @register_bp.route('/api/register', methods=['POST'])
 def register():
-    connection = current_app.config['MYSQL_CONNECTION']
+    connection = current_app.config['PG_CONNECTION']
 
     try:
         # Campos desde el formulario de react
@@ -106,11 +106,12 @@ def register():
                 (nombre, apellido, nombre_usuario, pss, correo_electronico, numero_telefono, 
                     url_foto_perfil, patrocinador, membresia, medio_pago, rol)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id_usuario
                 """,
                 (nombre, apellido, nombre_usuario, hashed_password, correo,
                     telefono, ruta_foto, patrocinador, 1, 1, 3)
             )
-            id_usuario = cursor.lastrowid
+            id_usuario = cursor.fetchone()['id_usuario']
 
             # Insertar dirección (usa ciudad como id_ubicacion)
             cursor.execute(
@@ -121,7 +122,6 @@ def register():
                 """,
                 (id_usuario, direccion, codigo_postal, int(ciudad), lugar_entrega)
             )
-
             # Crear carrito de compras
             cursor.execute(
                 "INSERT INTO carrito_compras (id_usuario) VALUES (%s)",
@@ -135,4 +135,3 @@ def register():
     except Exception as e:
         current_app.logger.error(f"Error durante el registro: {e}")
         return jsonify(success=False, message=f"Error durante el registro: {str(e)}"), 500
-

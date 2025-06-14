@@ -11,16 +11,14 @@ def login():
 
     data = request.get_json()
 
-
-    # "usuario" y "contrasena" del JSON
     usuario = data.get('usuario')
     contrasena = data.get('contrasena')
 
     if not usuario or not contrasena:
         return jsonify(success=False, message='Debes enviar usuario y contraseña.'), 400
 
-    # la conexión MySQL
-    connection = current_app.config['MYSQL_CONNECTION']
+    # conexión PostgreSQL
+    connection = current_app.config['PG_CONNECTION']
 
     try:
         with connection.cursor() as cursor:
@@ -43,16 +41,14 @@ def login():
                 destino = role_redirects.get(usuario_encontrado['role_id'], '/inicio')
 
                 return jsonify(success=True,
-                                redirect=destino,
-                                user={
-                                    'id': usuario_encontrado['id'],
-                                    'role': usuario_encontrado['role_id']
-                                })
+                               redirect=destino,
+                               user={
+                                   'id': usuario_encontrado['id'],
+                                   'role': usuario_encontrado['role_id']
+                               })
 
-            # Si usuario no existe o contraseña inválida:
             return jsonify(success=False, message="Usuario o contraseña incorrectos."), 401
 
     except Exception as e:
-        # En caso de cualquier error de base de datos:
         current_app.logger.error(f"Error en login: {e}")
         return jsonify(success=False, message=f"Error de servidor: {str(e)}"), 500

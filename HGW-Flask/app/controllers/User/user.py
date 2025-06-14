@@ -12,7 +12,7 @@ def obtener_usuario():
     if not user_id:
         return jsonify({"success": False, "message": "ID de usuario no proporcionado"}), 400
 
-    connection = current_app.config['MYSQL_CONNECTION']
+    connection = current_app.config['PG_CONNECTION']
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -24,7 +24,7 @@ def obtener_usuario():
             if not user:
                 return jsonify({"success": False, "message": "Usuario no encontrado"}), 404
 
-            if user.get("activo") == 0:
+            if user.get("activo") == False:
                 return jsonify({
                     "success": False,
                     "message": "Tu cuenta ha sido desactivada. Contacta al administrador."

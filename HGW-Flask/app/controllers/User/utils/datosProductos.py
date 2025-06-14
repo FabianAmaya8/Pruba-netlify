@@ -1,7 +1,7 @@
 from flask import current_app
 
 def obtener_productos(limit):
-    connection = current_app.config['MYSQL_CONNECTION']
+    connection = current_app.config['PG_CONNECTION']
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -16,7 +16,7 @@ def obtener_productos(limit):
                 FROM productos p
                 JOIN categorias c ON p.categoria = c.id_categoria
                 JOIN subcategoria sc ON p.subcategoria = sc.id_subcategoria
-                ORDER BY RAND()
+                ORDER BY RANDOM()
                 LIMIT %s
             """, (limit,))
             productos = cursor.fetchall()

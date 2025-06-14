@@ -1,5 +1,6 @@
 from flask import Flask
-import pymysql.cursors
+import psycopg2
+import psycopg2.extras
 from config import Config
 from flask_cors import CORS
 
@@ -12,18 +13,27 @@ from .controllers.User.catalogo import catalogo_bp
 
 def create_app():
     app = Flask(__name__)
-
     app.config.from_object(Config)
-
     CORS(app)
-    connection = pymysql.connect(
-        host=app.config['MYSQL_HOST'],
-        user=app.config['MYSQL_USER'],
-        password=app.config['MYSQL_PASSWORD'],
-        database=app.config['MYSQL_DB'],
-        cursorclass=pymysql.cursors.DictCursor
+
+    dsn = (
+        f"host={app.config['PG_HOST']} "
+        f"user={app.config['PG_USER']} "
+        f"password={app.config['PG_PASSWORD']} "
+        f"dbname={app.config['PG_DB']} "
+        f"port={app.config['PG_PORT']} "
+        f"options='-c client_encoding=UTF8'"
     )
-    app.config['MYSQL_CONNECTION'] = connection
+
+    try:
+        connection = psycopg2.connect(
+            dsn,
+            cursor_factory=psycopg2.extras.RealDictCursor
+        )
+        app.config['PG_CONNECTION'] = connection
+    except Exception as e:
+        app.logger.error(f"❌ Error de conexión a PostgreSQL: {e}")
+        raise
 
     # Registrar Blueprints
     app.register_blueprint(admin_bp)
